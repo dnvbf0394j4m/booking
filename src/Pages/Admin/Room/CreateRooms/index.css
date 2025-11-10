@@ -1,0 +1,53 @@
+    /* CreateRoom.css */
+.room-form-container {
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.room-form-container h2 {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.innerleft, .innerRight {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.innerleft {
+  border-right: 1px solid #f0f0f0;
+}
+
+.ant-form-item-label > label {
+  font-weight: 500;
+  color: #444;
+}
+
+.ant-input,
+.ant-input-number,
+.ant-select-selector {
+  border-radius: 8px !important;
+}
+
+.ant-btn-primary {
+  background: linear-gradient(90deg, #1677ff 0%, #4096ff 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(90deg, #4096ff 0%, #69b1ff 100%);
+  transform: translateY(-1px);
+}
+
+.ant-upload-list-picture {
+  margin-top: 8px;
+}

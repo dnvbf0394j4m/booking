@@ -1,0 +1,32 @@
+.header_logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 240px;
+}
+
+.header_logo_mini {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    transition: all 0.2s;
+}
+
+
+.header {
+
+    display: flex;
+}
+
+img {
+    object-fit: contain;
+
+}
+
+
+.head_right {
+    display: flex;
+    justify-content: space-between;
+    width: 205px;
+}

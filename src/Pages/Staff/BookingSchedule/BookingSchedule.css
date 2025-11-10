@@ -1,0 +1,23 @@
+.react-calendar-timeline .rct-header-root {
+  background: #fafafa;
+  border-bottom: 1px solid #ddd;
+}
+
+.react-calendar-timeline .rct-dateHeader {
+  border-left: 1px solid #eee;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.react-calendar-timeline .rct-items .rct-item {
+  transition: all 0.2s ease;
+}
+
+.react-calendar-timeline .rct-items .rct-item:hover {
+  transform: scale(1.02);
+}
+
+.custom-grid-line {
+  border-left: 1px solid #e8e8e8;
+}
