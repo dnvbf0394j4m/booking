@@ -15,13 +15,13 @@ export default function Login() {
 
   const onFinish = values => {
 
-    fetch("http://localhost:8082/identity/auth/log-in", {
+    fetch("http://localhost:4000/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        username: values.username,
+        email: values.username,
         password: values.password   // chữ thường
       })
     })
@@ -32,21 +32,27 @@ export default function Login() {
         return res.json();
       })
       .then(data => {
-        if (data.code === 0) {
-          const token = data.result.token;
-          const firstLogin = data.result.firstLogin;
+        if (data) {
+          const token = data.token;
+          // const firstLogin = data.result.firstLogin;
 
           console.log("Token:", token);
-          console.log("First login:", firstLogin);
-
-          localStorage.setItem("authToken", token);
-
-          if (firstLogin) {
-            console.log("Redirect to change password page...");
-            navigate("/Admin")
-          } else {
-            console.log("Redirect to dashboard...");
+          console.log("User Data:", data.user.company);
+          if(data.user.company){
+            localStorage.setItem("CompanyId", data.user.company.id);
           }
+          // console.log("First login:", firstLogin);
+          // localStorage.setItem("CompanyId", data.user.hotel.id);
+          localStorage.setItem("authToken", token);
+          
+
+             navigate("/Admin")
+          // if (firstLogin) {
+          //   console.log("Redirect to change password page...");
+          //   navigate("/Admin")
+          // } else {
+          //   console.log("Redirect to dashboard...");
+          // }
         } else {
           console.error("Login failed:", data);
         }
