@@ -142,7 +142,7 @@ import { useAuth } from "../../context/useAuth";
 import { setAccessToken } from "../../api/client";
 
 const { Title, Text } = Typography;
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+const API_BASE =  "http://localhost:4000";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -199,6 +199,7 @@ export default function Login() {
       // ❌ Không dùng localStorage nữa
       localStorage.setItem("authToken", data.accessToken);
       localStorage.setItem("authUser", JSON.stringify(data.user));
+      localStorage.setItem("hotelId", data.user.hotel.id);
 
       message.success("Đăng nhập thành công!");
       navigate("/");

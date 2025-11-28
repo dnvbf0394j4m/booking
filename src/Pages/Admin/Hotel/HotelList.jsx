@@ -488,6 +488,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../../../api/client"; 
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -572,31 +573,47 @@ export default function HotelList() {
   }, [debouncedQ, page, limit, sort, filterCity, includeDeleted]);
 
   // ---- load hotels from API ----
-  useEffect(() => {
+    useEffect(() => {
     let cancelled = false;
+
     const load = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_BASE}/api/hotels?${queryString}`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+
+        // 🔹 KHÔNG tự set headers Authorization nữa
+        // Interceptor sẽ tự gắn accessToken hiện tại + tự refresh nếu 401
+        const res = await api.get(`/api/hotels?${queryString}`);
+
         if (cancelled) return;
+
         const items = Array.isArray(res.data?.data) ? res.data.data : [];
         setData(items);
         setTotal(res.data?.pagination?.total ?? items.length);
       } catch (e) {
-        console.error(e);
-        message.error(e?.response?.data?.error || "Không tải được danh sách khách sạn");
+        console.error("HotelList load error:", e);
+
+        // Nếu vẫn là 401 ở đây, nghĩa là:
+        // - refresh token thất bại → coi như user hết phiên đăng nhập
+        if (e?.response?.status === 401) {
+          message.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại");
+          // nếu bạn có useNavigate:
+          // navigate("/login");
+        } else {
+          message.error(
+            e?.response?.data?.error || "Không tải được danh sách khách sạn"
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
+
     load();
-    return () => { cancelled = true; };
-  }, [queryString, token]);
+    return () => {
+      cancelled = true;
+    };
+  }, [queryString]);  // ❌ KHÔNG cần dependency token nữa
+
 
   // ---- Actions ----
   const handleViewDetail = (e, record) => {

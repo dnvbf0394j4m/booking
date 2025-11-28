@@ -10,15 +10,18 @@ export const AuthProvider = ({ children }) => {
 
   // Khi reload trang, nếu còn cookie refreshToken → tự gọi refresh-token 1 lần
   useEffect(() => {
+
     const bootstrap = async () => {
       try {
-        const res = await api.post("/api/auth/refresh-token");
+        const res = await api.post("/api/auth/ok", {}, { withCredentials: true });
         if (res.data?.accessToken) {
+          console.log("Bootstrapped Access Token:", res.data.accessToken);
+          console.log("Bootstrapped User Data:", res.json());
           setAccessToken(res.data.accessToken);
           // Nếu có API me
           // const me = await api.get("/api/auth/me");
-          // setUser(me.data);
-        }
+            // setUser(me.data);
+          }
       } catch (e) {
         clearAccessToken();
       } finally {

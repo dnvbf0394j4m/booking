@@ -26,6 +26,10 @@ import { EnvironmentOutlined, SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
+import api from "../../api/client";
+
+
+
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -130,6 +134,7 @@ export default function Home() {
         `${API_BASE}/api/hotels/public/list?${params.toString()}`
       );
       const json = await res.json();
+      console.log("Fetched hotels:", json);
       setHotels(json.data || []);
     } catch (e) {
       console.error("Fetch hotels error:", e);

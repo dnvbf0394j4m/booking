@@ -8,7 +8,21 @@ export default function HeaderSimple() {
   const navigate = useNavigate();
 
   const token = localStorage.getItem("authToken");
-  const user = JSON.parse(localStorage.getItem("authUser") || "{}");
+
+  // 🔐 Parse authUser an toàn
+  let user = null;
+  const rawUser = localStorage.getItem("authUser");
+
+  if (rawUser) {
+    try {
+      user = JSON.parse(rawUser);
+    } catch (err) {
+      console.warn("Lỗi parse authUser từ localStorage:", err);
+      user = null;
+      // Optional: dọn luôn localStorage nếu bị sai
+      localStorage.removeItem("authUser");
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -62,7 +76,7 @@ export default function HeaderSimple() {
           </>
         ) : (
           <>
-            <Text strong>Xin chào, {user.name}</Text>
+            <Text strong>Xin chào, {user?.name || "Khách"}</Text>
             <Button danger onClick={handleLogout}>
               Đăng xuất
             </Button>

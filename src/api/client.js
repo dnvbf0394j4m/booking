@@ -1,10 +1,12 @@
 // src/api/client.js
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+// const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+const API_BASE="http://localhost:4000";
+
 
 // biến module-level, không lưu localStorage
-let accessToken = null;
+export let accessToken = null;
 
 export const setAccessToken = (token) => {
   accessToken = token || null;
@@ -20,6 +22,8 @@ const api = axios.create({
 });
 
 // Request interceptor: gắn accessToken vào header
+
+console.log("Current Access Token:", accessToken);
 api.interceptors.request.use(
   (config) => {
     if (accessToken) {
@@ -46,6 +50,7 @@ const processQueue = (error, token = null) => {
 };
 
 api.interceptors.response.use(
+  
   (response) => response,
   async (error) => {
     const originalConfig = error.config;
@@ -74,14 +79,15 @@ api.interceptors.response.use(
           reject,
         });
       });
-    }
+    } 
 
     isRefreshing = true;
 
+    console.log("vao duoc day")
     try {
       // Gọi refreshToken, cookie httpOnly sẽ được gửi kèm nhờ withCredentials
       const res = await axios.post(
-        `${API_BASE}/api/auth/refresh-token`,
+        `${API_BASE}/api/auth/ok`,
         {},
         { withCredentials: true }
       );

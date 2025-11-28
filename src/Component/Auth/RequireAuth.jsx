@@ -19,7 +19,7 @@ export default function RequireAuth({ allowedRoles }) {
     const roles = decoded.roles || [];
     const ok = roles.some(r => allowedRoles.includes(r));
 
-    if (!ok) return <Navigate to="/403" replace />; // trang cấm truy cập
+    if (!ok) return <Navigate to="/" replace />; // trang cấm truy cập
 
     return <Outlet />;
 
