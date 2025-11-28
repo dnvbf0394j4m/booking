@@ -12,6 +12,7 @@ import { Button, Dropdown, Layout, Menu, theme } from 'antd';
 import logo from '../../Images/logo.svg';
 import logo_mini from '../../Images/logo-mini.svg';
 import '../Layout/lauout.css';
+import NotificationBell from "./NotificationBell"
 
 const { Header, Sider, Content } = Layout;
 
@@ -79,19 +80,20 @@ const app = () => {
             />
             <div className='head_right'>
               <div>
-                <Dropdown menu={{ items: itemsDropdown }} trigger={['click']}>
-                  <a onClick={e => e.preventDefault()}>
-                    <div>
-                      <BellOutlined style={{ fontSize: 20 }} />
-                    </div>
-                  </a>
-                </Dropdown>
+                <NotificationBell
+                  onOpenBooking={(bookingId) => {
+                    // TODO: nếu bạn muốn, có thể navigate đến trang chi tiết booking
+                    // ví dụ: navigate(`/Admin/bookings/${bookingId}`);
+                    console.log("Open booking detail:", bookingId);
+                  }}
+                />
               </div>
 
               <div>
                 prifile
               </div>
             </div>
+
           </div>
         </div>
       </Header>

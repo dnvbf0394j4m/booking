@@ -10,6 +10,7 @@ import LayoutUser from "../Component/Layout";
 import BookingPage from "../Pages/Booking/BookingPage";
 import PaymentSuccess from "../Pages/Booking/PaymentSuccess";
 import PaymentFail from "../Pages/Booking/PaymentFail";
+import MyBookings from "../Pages/User/MyBookings";
 
 export const userRoutes = [
     {
@@ -35,14 +36,19 @@ export const userRoutes = [
             },
             { path: "booking", element: <BookingPage /> },
             {
-                path:"/payment/success",
-                element:<PaymentSuccess />
+                path: "/payment/success",
+                element: <PaymentSuccess />
             },
             {
-                path:"/payment/fail",
-                element:<PaymentFail />
+                path: "/payment/fail",
+                element: <PaymentFail />
+            },
+            {
+                path: "/my-bookings",
+                element: <MyBookings />,
             }
-           
+
+
 
 
 

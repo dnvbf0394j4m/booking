@@ -12,11 +12,12 @@ import {
     Divider,
     Space,
     message,
-    
-    
+
+
 } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import api from "../../api/client";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -60,62 +61,73 @@ export default function BookingPage() {
 
     const pricePerNight = room?.price || hotel?.priceHotel || 0;
     const total = pricePerNight * nightCount * roomNum;
-const [form] = Form.useForm();  // 👈 dùng để validate + lấy dữ liệu
+    const [form] = Form.useForm();  // 👈 dùng để validate + lấy dữ liệu
 
 
-const handlePayVNPay = async () => {
-  try {
-    if (!hotel || !room) {
-      message.error("Thiếu thông tin khách sạn hoặc phòng. Vui lòng quay lại chọn lại.");
-      return;
-    }
-    if (!checkIn || !checkOut) {
-      message.error("Vui lòng chọn ngày nhận phòng và trả phòng.");
-      return;
-    }
+    const handlePayVNPay = async () => {
+        try {
+            if (!hotel || !room) {
+                message.error("Thiếu thông tin khách sạn hoặc phòng. Vui lòng quay lại chọn lại.");
+                return;
+            }
+            if (!checkIn || !checkOut) {
+                message.error("Vui lòng chọn ngày nhận phòng và trả phòng.");
+                return;
+            }
 
-    // Validate form + lấy dữ liệu
-    const values = await form.validateFields(); // { name, phone, email, note? }
+            // Validate form + lấy dữ liệu
+            const values = await form.validateFields(); // { name, phone, email, note? }
 
-    const res = await fetch(`${API_BASE}/api/public/bookings/create-and-pay`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        hotel: hotel._id,
-        room: room._id,
-        start_day: checkIn,
-        end_day: checkOut,
-        customer: {
-          name: values.name,
-          phone: values.phone,
-          email: values.email,
-        },
-        note: values.note || "",
-      }),
-    });
+            // const res = await fetch(`${API_BASE}/api/public/bookings/create-and-pay`, {
+            //   method: "POST",
+            //   headers: { "Content-Type": "application/json" },
+            //   body: JSON.stringify({
+            //     hotel: hotel._id,
+            //     room: room._id,
+            //     start_day: checkIn,
+            //     end_day: checkOut,
+            //     customer: {
+            //       name: values.name,
+            //       phone: values.phone,
+            //       email: values.email,
+            //     },
+            //     note: values.note || "",
+            //   }),
+            // });
 
-    const data = await res.json();
-    console.log("📌 Payment data:", data);
 
-    if (!res.ok) {
-      message.error(data.error || "Lỗi tạo booking online");
-      return;
-    }
+            const res = await api.post("/api/public/bookings/create-and-pay", {
+                hotel: hotel._id,
+                room: room._id,
+                start_day: checkIn,
+                end_day: checkOut,
+                customer: { name: values.name, phone: values.phone, email: values.email },
+                note: values.note || "",
+            });
 
-    if (!data.paymentUrl) {
-      message.error("API không trả về paymentUrl, kiểm tra lại backend!");
-      return;
-    }
+            console.log("📌 Payment response:", res);
+            const data = await res.data;
+            console.log("📌 Payment data:", data);
 
-    // ✅ Redirect sang VNPay
-    window.location.href = data.paymentUrl;
-  } catch (e) {
-    // Nếu lỗi là validate form của AntD thì k cần báo
-    if (e?.errorFields) return;
-    console.error("Lỗi thanh toán VNPay:", e);
-    message.error(e.message || "Không thể tạo thanh toán VNPay");
-  }
-};
+            // if (!res.ok) {
+            //     message.error(data.error || "Lỗi tạo booking online");
+            //     return;
+            // }
+
+            if (!data.paymentUrl) {
+                message.error("API không trả về paymentUrl, kiểm tra lại backend!");
+                return;
+            }
+
+            // ✅ Redirect sang VNPay
+            window.location.href = data.paymentUrl;
+        } catch (e) {
+            // Nếu lỗi là validate form của AntD thì k cần báo
+            if (e?.errorFields) return;
+            console.error("Lỗi thanh toán VNPay:", e);
+            message.error(e.message || "Không thể tạo thanh toán VNPay");
+        }
+    };
 
 
     const onFinish = async (values) => {
@@ -142,7 +154,7 @@ const handlePayVNPay = async () => {
         <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
             <Content style={{ padding: "24px 0" }}>
                 <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px" }}>
-                    <Button type="link" onClick={() => navigate(-1)} style={{ paddingLeft: 0 ,position: "absolute",left:"248px",fontSize:"16px" }}>
+                    <Button type="link" onClick={() => navigate(-1)} style={{ paddingLeft: 0, position: "absolute", left: "248px", fontSize: "16px" }}>
                         ← Quay lại chi tiết khách sạn
                     </Button>
 

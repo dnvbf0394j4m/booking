@@ -681,4 +681,4 @@ export default function HotelDetail() {
       </div>
     </div>
   );
-}
+} 
