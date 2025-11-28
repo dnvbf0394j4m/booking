@@ -13,6 +13,7 @@ import HotelDetail from "../Pages/Admin/Hotel/DetailHotel";
 import HotelTimeline from "../Pages/Admin/vidu";
 import Employee from "../Pages/Admin/Employee";
 import CreateEmployee from "../Pages/Admin/Employee/CreateEmlpoyee";
+import AdminDashboard from "../Pages/Admin/Dashbroad";
 
 export const AdminRoutes = [
     {
@@ -21,7 +22,7 @@ export const AdminRoutes = [
         children: [
             {
                 index: true,
-                element: <Dashbroad />,
+                element: <AdminDashboard />,
             },
             {
                 path: "Hotel",
