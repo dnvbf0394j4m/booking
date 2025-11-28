@@ -1,7 +1,7 @@
 import Dashbroad from "../Pages/Admin/Dashbroad";
 import Layout from "../Component/Layout/index";
 
-import CreateHotel from "../Pages/Admin/Hotel/createHotel";
+import CreateHotel from "../Pages/Admin/Hotel/CreateHotel";
 import Login from "../Pages/Admin/Login";
 
 import Rooms from "../Pages/Admin/Room/Index";
