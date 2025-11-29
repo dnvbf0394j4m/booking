@@ -388,11 +388,14 @@ import {
   DeleteOutlined
 } from "@ant-design/icons";
 import api from "../../../api/client";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 // const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"; // không dùng có thể bỏ
 
 export default function CreateHotel() {
+
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const inputRef = useRef(null);
   const mapRef = useRef(null);
@@ -418,16 +421,16 @@ export default function CreateHotel() {
         const cityData = Array.isArray(cRes.data?.data)
           ? cRes.data.data
           : Array.isArray(cRes.data)
-          ? cRes.data
-          : [];
+            ? cRes.data
+            : [];
 
         console.log("cityData", cityData);
 
         const areaData = Array.isArray(aRes.data?.data)
           ? aRes.data.data
           : Array.isArray(aRes.data)
-          ? aRes.data
-          : [];
+            ? aRes.data
+            : [];
 
         console.log("areaData", areaData);
 
@@ -527,8 +530,8 @@ export default function CreateHotel() {
         address: values.address,
         priceHotel: Number(values.price),
         discount: Number(values.discount || 0),
-        city: values.city || undefined, // ObjectId
-        area: values.area || undefined, // ObjectId
+        city: values.city || undefined,
+        area: values.area || undefined,
         lat: Number(values.lat),
         lng: Number(values.lng),
         checkInTime: values.check_in_time
@@ -559,13 +562,17 @@ export default function CreateHotel() {
       });
 
       const res = await api.post("/api/hotels", formData);
-
       const data = res.data;
+
       message.success("Tạo khách sạn thành công!");
       console.log("Created hotel:", data);
 
+      // ✅ reset form (tuỳ bạn, có thể bỏ)
       form.resetFields();
       setFileList([]);
+
+      // ✅ điều hướng về trang list
+      navigate("/Admin/Hotel");     // 👈 đường dẫn list của bạn
     } catch (err) {
       console.error(err);
       const msg =
@@ -576,6 +583,7 @@ export default function CreateHotel() {
       message.error(msg);
     }
   };
+
 
   // ---- Tabs content ----
   const tabItems = [

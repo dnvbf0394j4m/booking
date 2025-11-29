@@ -151,65 +151,92 @@ export default function Login() {
   // lấy hàm login từ context
   const { login } = useAuth();
 
-  const onFinish = async (values) => {
+const onFinish = async (values) => {
+  try {
+    setLoading(true);
+
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
+      credentials: "include",
+    });
+
+    let data = null;
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-        credentials: "include", 
-      });
-
-      let data = null;
-      try {
-        data = await res.json();
-      } catch {
-        // nếu backend không trả JSON thì bỏ qua
-      }
-
-      if (!res.ok) {
-        console.log("Login error response:", res.status, data);
-
-        const raw = data?.error || data?.message || "";
-
-        let errMsg = "Đăng nhập thất bại";
-
-        if (raw.includes('"email" must be a valid email')) {
-          errMsg =
-            "Email không hợp lệ. Vui lòng nhập đúng định dạng (vd: abc@gmail.com)";
-        } else if (raw) {
-          errMsg = raw;
-        } else if (res.status === 400) {
-          errMsg = "Tài khoản hoặc mật khẩu không đúng";
-        }
-
-        message.error(errMsg);
-        alert(errMsg);
-        return;
-      }
-
-      // ✅ Backend trả về: { accessToken, user }
-      // Lưu token vào api client (memory)
-      setAccessToken(data.accessToken);
-
-      // Lưu user vào AuthContext
-      login(data.user, data.accessToken);
-
-      // ❌ Không dùng localStorage nữa
-      localStorage.setItem("authToken", data.accessToken);
-      localStorage.setItem("authUser", JSON.stringify(data.user));
-      localStorage.setItem("hotelId", data.user.hotel.id);
-
-      message.success("Đăng nhập thành công!");
-      navigate("/");
-    } catch (e) {
-      console.error(e);
-      message.error(e.message || "Đăng nhập thất bại");
-    } finally {
-      setLoading(false);
+      data = await res.json();
+    } catch {
+      // nếu backend không trả JSON thì bỏ qua
     }
-  };
+
+    if (!res.ok) {
+      console.log("Login error response:", res.status, data);
+
+      const raw = data?.error || data?.message || "";
+      let errMsg = "Đăng nhập thất bại";
+
+      if (raw.includes('"email" must be a valid email')) {
+        errMsg =
+          "Email không hợp lệ. Vui lòng nhập đúng định dạng (vd: abc@gmail.com)";
+      } else if (raw) {
+        errMsg = raw;
+      } else if (res.status === 400) {
+        errMsg = "Tài khoản hoặc mật khẩu không đúng";
+      }
+
+      message.error(errMsg);
+      alert(errMsg);
+      return;
+    }
+
+    // ✅ Kiểm tra data hợp lệ
+    if (!data || !data.accessToken || !data.user) {
+      message.error("Dữ liệu trả về không hợp lệ");
+      console.log("Login data invalid:", data);
+      return;
+    }
+
+    console.log("🔐 Login data:", data);
+
+    // ✅ Lưu token vào client
+    setAccessToken(data.accessToken);
+
+    // ✅ Lưu user vào AuthContext
+    login(data.user, data.accessToken);
+
+    // ✅ Nếu vẫn muốn dùng localStorage thì để thế này
+    localStorage.setItem("authToken", data.accessToken);
+    localStorage.setItem("authUser", JSON.stringify(data.user));
+
+    // ✅ Lấy hotelId an toàn
+    let hotelId = null;
+    const hotel = data.user.hotel;
+
+    if (typeof hotel === "string") {
+      // trường hợp backend trả về hotel là ID string
+      hotelId = hotel;
+    } else if (hotel && (hotel._id || hotel.id)) {
+      // trường hợp backend populate hotel thành object
+      hotelId = hotel._id || hotel.id;
+    }
+
+    if (hotelId) {
+      localStorage.setItem("hotelId", hotelId);
+    } else {
+      console.warn("⚠️ User không có hotelId, không lưu vào localStorage");
+      // tuỳ bạn: có thể message.warning ở đây nếu là ADMIN_HOTEL mà chưa gán khách sạn
+    }
+
+    message.success("Đăng nhập thành công!");
+    navigate("/");
+  } catch (e) {
+    console.error(e);
+    message.error(e.message || "Đăng nhập thất bại");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div
