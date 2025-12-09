@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/components/Layout/AppLayout.jsx (ví dụ)
+import React, { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import {
   MenuFoldOutlined,
@@ -6,94 +7,136 @@ import {
   UploadOutlined,
   UserOutlined,
   VideoCameraOutlined,
-  BellOutlined,
-} from '@ant-design/icons';
-import { Button, Dropdown, Layout, Menu, theme } from 'antd';
-import logo from '../../Images/logo.svg';
-import logo_mini from '../../Images/logo-mini.svg';
-import '../Layout/lauout.css';
-import NotificationBell from "./NotificationBell"
+} from "@ant-design/icons";
+import { Button, Dropdown, Layout, Menu, Avatar, Space } from "antd";
+import logo from "../../Images/logo.svg";
+import logo_mini from "../../Images/logo-mini.svg";
+import "../Layout/lauout.css";
+import NotificationBell from "./NotificationBell";
+import { useNavigate } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
-const app = () => {
+// Nên đặt chữ cái đầu viết hoa
+const AppLayout = () => {
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const path = location.pathname;
+
+
+  // 🔐 Parse authUser an toàn
+  let user = null;
+  const rawUser = localStorage.getItem("authUser");
+
+  if (rawUser) {
+    try {
+      user = JSON.parse(rawUser);
+    } catch (err) {
+      console.warn("Lỗi parse authUser từ localStorage:", err);
+      user = null;
+      // Optional: dọn luôn localStorage nếu bị sai
+      localStorage.removeItem("authUser");
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUser");
+    localStorage.removeItem("hotelId");
+    navigate("/");
+    window.location.reload();
+  };
+
   const {
     token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+  } = Layout.useToken
+      ? Layout.useToken()
+      : // nếu bạn đang dùng theme.useToken như cũ thì giữ nguyên
+      { token: { colorBgContainer: "#fff", borderRadiusLG: 8 } };
 
-  const location = useLocation(); // 👈 lấy URL hiện tại
 
-  const itemsDropdown = [
+  console.log("Current user in AppLayout:", user);
+
+  const profileMenuItems = [
     {
+      key: "profile",
       label: (
-        <a href="/" target="_blank" rel="noopener noreferrer">
-          Tổng quát
-        </a>
+        <div style={{ minWidth: 180 }}>
+          <div style={{ fontWeight: 600 }}>{user?.name || "Tài khoản"}</div>
+          <div style={{ fontSize: 12, opacity: 0.75 }}>
+            {user?.email || ""}
+          </div>
+        </div>
       ),
-      key: '0',
     },
+    { type: "divider" },
     {
-      label: (
-        <a href="https://www.aliyun.com" target="_blank" rel="noopener noreferrer">
-          2nd menu item
-        </a>
-      ),
-      key: '1',
-    },
-    {
-      type: 'divider',
-    },
-    {
-      label: '3rd menu item',
-      key: '3',
+      key: "logout",
+      danger: true,
+      label: "Đăng xuất",
+      onClick: handleLogout,
     },
   ];
 
-  // Xác định key đang được chọn dựa trên pathname
-  const path = location.pathname;
-  let selectedKey = '';
-  if (path.startsWith('/Admin/Hotel')) {
-    selectedKey = '/Admin/Hotel';
-  } else if (path.startsWith('/Admin')) {
-    selectedKey = '/Admin';
-  }
-
   return (
-    <Layout style={{ minHeight: "100vh", width: "100%", minWidth: "100vw", margin: '0' }}>
+    <Layout
+      style={{ minHeight: "100vh", width: "100%", minWidth: "100vw", margin: 0 }}
+    >
       <Header style={{ padding: 0, background: colorBgContainer }}>
-        <div className='header'>
-          <div className={collapsed ? 'header_logo_mini' : 'header_logo'}>
-            <img src={collapsed ? logo_mini : logo} alt="Logo" style={{ height: 40, width: '100px' }} />
+        <div className="header">
+          <div className={collapsed ? "header_logo_mini" : "header_logo"}>
+            <img
+              src={collapsed ? logo_mini : logo}
+              alt="Logo"
+              style={{ height: 40, width: "100px" }}
+            />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1, paddingLeft: 20, paddingRight: 40 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              flex: 1,
+              paddingLeft: 20,
+              paddingRight: 40,
+            }}
+          >
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
               style={{
-                fontSize: '16px',
+                fontSize: "16px",
                 width: 64,
                 height: 64,
               }}
             />
-            <div className='head_right'>
+            <div className="head_right" style={{ display: "flex",alignItems:"center", gap: 16 }}>
               <div>
                 <NotificationBell
                   onOpenBooking={(bookingId) => {
-                    // TODO: nếu bạn muốn, có thể navigate đến trang chi tiết booking
-                    // ví dụ: navigate(`/Admin/bookings/${bookingId}`);
                     console.log("Open booking detail:", bookingId);
                   }}
                 />
               </div>
 
-              <div>
-                prifile
-              </div>
+              {/* PROFILE DROPDOWN */}
+              <Dropdown
+                menu={{ items: profileMenuItems }}
+                placement="bottomRight"
+                trigger={["click"]}
+              >
+                <Button type="text">
+                  <Space>
+                    <Avatar size="small" icon={<UserOutlined />} />
+                    <span style={{ maxWidth: 160 }} className="text-ellipsis">
+                      {user?.name || user?.email || "Đăng nhập"}
+                    </span>
+                  </Space>
+                </Button>
+              </Dropdown>
             </div>
-
           </div>
         </div>
       </Header>
@@ -105,27 +148,27 @@ const app = () => {
           <Menu
             theme="dark"
             mode="inline"
-            selectedKeys={[selectedKey]}   // 👈 luôn bám theo URL
+            selectedKeys={[path]}
             items={[
               {
-                key: '/Admin',
+                key: "/Admin",
                 icon: <UserOutlined />,
-                label: <NavLink to="/Admin">Tổng quát</NavLink>
+                label: <NavLink to="/Admin">Tổng quát</NavLink>,
               },
               {
-                key: '/Admin/Hotel',
+                key: "/Admin/Hotel",
                 icon: <VideoCameraOutlined />,
-                label: <NavLink to="/Admin/Hotel">Quan lý phòng</NavLink>
+                label: <NavLink to="/Admin/Hotel">Quản lý phòng</NavLink>,
               },
               {
-                key: '3',
+                key: "/Admin/employee",
                 icon: <UploadOutlined />,
-                label: 'Nhân viên',
+                label: <NavLink to="/Admin/employee">Nhân viên</NavLink>,
               },
               {
-                key: '4',
+                key: "/Admin/booking",
                 icon: <UploadOutlined />,
-                label: 'Phân quyền',
+                label: <NavLink to="/Admin/booking">Đặt phòng</NavLink>,
               },
             ]}
           />
@@ -146,4 +189,4 @@ const app = () => {
   );
 };
 
-export default app;
+export default AppLayout;

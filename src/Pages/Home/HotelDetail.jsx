@@ -692,7 +692,7 @@ export default function HotelDetail() {
               }}
             >
               {/* LEFT: tên + sao + địa chỉ */}
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: 1, minWidth: 0,display:"block",textAlign:"left" }}>
                 <Title
                   level={3}
                   style={{ margin: 0, marginBottom: 4, lineHeight: 1.3 }}

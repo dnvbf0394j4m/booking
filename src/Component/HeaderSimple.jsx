@@ -27,6 +27,7 @@ export default function HeaderSimple() {
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("authUser");
+    localStorage.removeItem("hotelId");
     navigate("/");
     window.location.reload();
   };

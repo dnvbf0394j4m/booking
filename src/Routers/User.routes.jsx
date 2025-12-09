@@ -11,6 +11,8 @@ import BookingPage from "../Pages/Booking/BookingPage";
 import PaymentSuccess from "../Pages/Booking/PaymentSuccess";
 import PaymentFail from "../Pages/Booking/PaymentFail";
 import MyBookings from "../Pages/User/MyBookings";
+import AuthSuccess from "../Pages/auth/AuthSuccess";
+
 
 export const userRoutes = [
     {
@@ -53,9 +55,10 @@ export const userRoutes = [
 
 
         ]
-
-
-
+    },
+    {
+        path:"/auth/success",
+        element:<AuthSuccess/> ,
     },
 
 

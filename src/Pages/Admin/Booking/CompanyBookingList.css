@@ -1,0 +1,73 @@
+/* ============================
+   BỐ CỤC BỘ LỌC (Filter Wrapper)
+   ============================ */
+.filter-wrapper {
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(99, 99, 99, 0.08);
+  margin-bottom: 20px;
+  border: 1px solid #f0f0f0;
+}
+
+/* ============================
+   RANGE PICKER
+   ============================ */
+.filter-wrapper .ant-picker {
+  height: 40px;
+  border-radius: 8px !important;
+  border: 1px solid #d9d9d9;
+  transition: all 0.2s ease;
+}
+
+.filter-wrapper .ant-picker:hover,
+.filter-wrapper .ant-picker-focused {
+  border-color: #1677ff;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.15);
+}
+
+/* ============================
+   SELECT chung
+   ============================ */
+.filter-wrapper .ant-select-selector {
+  height: 40px !important;
+  border-radius: 8px !important;
+  display: flex;
+  align-items: center;
+  border: 1px solid #d9d9d9 !important;
+  transition: all 0.2s ease;
+}
+
+.filter-wrapper .ant-select:hover .ant-select-selector {
+  border-color: #1677ff !important;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.15);
+}
+
+/* ============================
+   INPUT SEARCH
+   ============================ */
+.filter-wrapper .ant-input-affix-wrapper {
+  height: 40px;
+  border-radius: 8px !important;
+  border: 1px solid #d9d9d9;
+  transition: all 0.2s ease;
+}
+
+.filter-wrapper .ant-input-affix-wrapper:hover,
+.filter-wrapper .ant-input-affix-wrapper-focused {
+  border-color: #1677ff !important;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.15);
+}
+
+/* Prefix icon màu nhạt */
+.filter-wrapper .ant-input-prefix {
+  color: #8c8c8c;
+}
+
+/* ============================
+   LÀM CỘT BỘ LỌC ĐẸP HƠN
+   ============================ */
+.filter-wrapper .ant-col {
+  display: flex;
+  align-items: center;
+}

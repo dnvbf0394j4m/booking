@@ -1,5 +1,3 @@
-
-
 // src/pages/hotel/HotelSearchPage.jsx (hoặc Home.jsx)
 import React, { useEffect, useState } from "react";
 import {
@@ -28,17 +26,13 @@ import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import api from "../../api/client";
 
-
-
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-
 // Backend base URL
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
-
 
 // Helper format tiền
 const formatMoney = (v) =>
@@ -59,15 +53,11 @@ export default function Home() {
 
   const [destination, setDestination] = useState("Hà Nội, Việt Nam");
   const [keyword, setKeyword] = useState("");
-  const [dateRange, setDateRange] = useState([null, null]);  // [checkIn, checkOut]
+  const [dateRange, setDateRange] = useState([null, null]); // [checkIn, checkOut]
 
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [datePopoverOpen, setDatePopoverOpen] = useState(true);
   const [dateText, setDateText] = useState("Chọn ngày");
   const [priceRange, setPriceRange] = useState([200000, 3000000]);
-
-
-
-  // Ngày – bạn đã có dateRange, dateText, datePopoverOpen rồi
 
   // Khách & phòng
   const [adults, setAdults] = useState(2);
@@ -80,7 +70,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [hotels, setHotels] = useState([]);
 
-
+  // 🟢 THÊM: bộ lọc loại chỗ ở & tiện nghi
+  const [accommodationType, setAccommodationType] = useState(null); // "HOTEL" | "APARTMENT" | "RESORT" | ...
+  const [amenitiesFilter, setAmenitiesFilter] = useState([]); // ["wifi","pool","breakfast"]
 
   const updateGuestText = (a, c, r) => {
     const adultText = `${a} Người lớn`;
@@ -105,8 +97,6 @@ export default function Home() {
     }
   };
 
-
-
   const [selectedCityId] = useState("");
   const [selectedAreaId] = useState("");
 
@@ -130,6 +120,14 @@ export default function Home() {
       params.set("child_num", String(children));
       // params.set("room_num", String(rooms));
 
+      // 🟢 GỬI THÊM LOẠI CHỖ Ở & TIỆN NGHI XUỐNG BACKEND
+      if (accommodationType) {
+        params.set("type", accommodationType); // khớp với q.type ở backend
+      }
+      if (amenitiesFilter.length > 0) {
+        params.set("amenities", amenitiesFilter.join(",")); // vd: wifi,pool,breakfast
+      }
+
       const res = await fetch(
         `${API_BASE}/api/hotels/public/list?${params.toString()}`
       );
@@ -147,13 +145,14 @@ export default function Home() {
     setDateRange(values || [null, null]);
 
     if (values && values[0] && values[1]) {
-      const text = `${values[0].format("DD/MM")} - ${values[1].format("DD/MM")}`;
+      const text = `${values[0].format("DD/MM")} - ${values[1].format(
+        "DD/MM"
+      )}`;
       setDateText(text);
     } else {
       setDateText("Chọn ngày");
     }
   };
-
 
   useEffect(() => {
     fetchHotels();
@@ -164,10 +163,12 @@ export default function Home() {
     fetchHotels();
   };
 
-  // Filter client-side theo giá + hạng sao
+  // Filter client-side theo giá + hạng sao + (type & amenities cho chắc)
   const filteredHotels = hotels.filter((h) => {
+    const price = Number(h.priceHotel || 0);
+
     // lọc theo khoảng giá
-    if (h.priceHotel < priceRange[0] || h.priceHotel > priceRange[1]) {
+    if (price < priceRange[0] || price > priceRange[1]) {
       return false;
     }
 
@@ -176,6 +177,18 @@ export default function Home() {
       const minStar = Math.min(...starFilter); // vd [5,4] => 4
       const rating = h.rating || 0;
       if (rating < minStar) return false;
+    }
+
+    // 🟢 lọc thêm theo loại chỗ ở (vì backend cũng đã lọc, cái này backup phía client)
+    if (accommodationType && h.type && h.type !== accommodationType) {
+      return false;
+    }
+
+    // 🟢 lọc thêm theo tiện nghi
+    if (amenitiesFilter.length > 0) {
+      const ams = Array.isArray(h.amenities) ? h.amenities : [];
+      const hasAll = amenitiesFilter.every((need) => ams.includes(need));
+      if (!hasAll) return false;
     }
 
     return true;
@@ -189,7 +202,6 @@ export default function Home() {
       }}
     >
       {/* HEADER SEARCH */}
-
       <Header
         style={{
           background: "#ffffff",
@@ -203,8 +215,8 @@ export default function Home() {
         {/* Thanh xanh giống Klook */}
         <div
           style={{
-            background: "#1f2470",        // xanh đậm
-            padding: "14px 0 18px",       // trên / dưới
+            background: "#1f2470", // xanh đậm
+            padding: "14px 0 18px", // trên / dưới
           }}
         >
           {/* Khung giữa, giới hạn chiều rộng */}
@@ -241,7 +253,6 @@ export default function Home() {
                   />
                 </div>
               </Col>
-
 
               {/* Chọn ngày */}
               <Col xs={24} md={7}>
@@ -281,9 +292,7 @@ export default function Home() {
                     {dateText}
                   </div>
                 </Popover>
-
               </Col>
-
 
               {/* Khách & phòng */}
               <Col xs={24} md={7}>
@@ -371,7 +380,6 @@ export default function Home() {
                 </Popover>
               </Col>
 
-
               {/* Nút tìm kiếm */}
               <Col xs={24} md={2}>
                 <Button
@@ -400,9 +408,6 @@ export default function Home() {
         </div>
       </Header>
 
-
-
-
       {/* CONTENT */}
       <Content style={{ padding: "24px 40px 40px ", marginTop: 55 }}>
         <Row gutter={24}>
@@ -428,9 +433,19 @@ export default function Home() {
                 </Space>
               </div>
 
-              {/* Hạng sao – giờ lọc theo rating thật */}
+              {/* Hạng sao */}
               <div style={{ marginBottom: 24 }}>
-                <Text strong>Hạng sao</Text>
+                <Text
+                  strong
+                  style={{
+                    display: "block",
+                    textAlign: "left",
+                    paddingBlockEnd: 10,
+                    fontSize: 20,
+                  }}
+                >
+                  Hạng sao
+                </Text>
                 <div style={{ marginTop: 8 }}>
                   {[5, 4, 3].map((s) => (
                     <Checkbox
@@ -440,12 +455,14 @@ export default function Home() {
                         if (e.target.checked) {
                           setStarFilter([...starFilter, s]);
                         } else {
-                          setStarFilter(
-                            starFilter.filter((st) => st !== s)
-                          );
+                          setStarFilter(starFilter.filter((st) => st !== s));
                         }
                       }}
-                      style={{ display: "block", marginBottom: 4 }}
+                      style={{
+                        display: "flex",
+                        marginBottom: 20,
+                        justifyContent: "space-between",
+                      }}
                     >
                       <Rate disabled value={s} /> trở lên
                     </Checkbox>
@@ -453,7 +470,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Loại chỗ ở – placeholder */}
+              {/* Loại chỗ ở – dùng state accommodationType */}
               <div style={{ marginBottom: 24 }}>
                 <Text strong>Loại chỗ ở</Text>
                 <Radio.Group
@@ -462,24 +479,71 @@ export default function Home() {
                     flexDirection: "column",
                     marginTop: 8,
                   }}
+                  value={accommodationType}
+                  onChange={(e) => setAccommodationType(e.target.value)}
                 >
                   <Radio value="HOTEL">Khách sạn</Radio>
                   <Radio value="APARTMENT">Căn hộ</Radio>
                   <Radio value="RESORT">Resort</Radio>
+                  {/* có thể thêm các loại khác nếu backend hỗ trợ:
+                      <Radio value="HOMESTAY">Homestay</Radio>
+                      <Radio value="VILLA">Villa</Radio> 
+                  */}
                 </Radio.Group>
               </div>
 
-              {/* Tiện nghi – placeholder */}
+              {/* Tiện nghi – dùng state amenitiesFilter */}
               <div>
                 <Text strong>Tiện nghi</Text>
                 <div style={{ marginTop: 8 }}>
-                  <Checkbox style={{ display: "block" }}>
+                  <Checkbox
+                    style={{ display: "block" }}
+                    checked={amenitiesFilter.includes("wifi")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setAmenitiesFilter([...amenitiesFilter, "wifi"]);
+                      } else {
+                        setAmenitiesFilter(
+                          amenitiesFilter.filter((x) => x !== "wifi")
+                        );
+                      }
+                    }}
+                  >
                     WiFi miễn phí
                   </Checkbox>
-                  <Checkbox style={{ display: "block" }}>
+
+                  <Checkbox
+                    style={{ display: "block" }}
+                    checked={amenitiesFilter.includes("pool")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setAmenitiesFilter([...amenitiesFilter, "pool"]);
+                      } else {
+                        setAmenitiesFilter(
+                          amenitiesFilter.filter((x) => x !== "pool")
+                        );
+                      }
+                    }}
+                  >
                     Bể bơi
                   </Checkbox>
-                  <Checkbox style={{ display: "block" }}>
+
+                  <Checkbox
+                    style={{ display: "block" }}
+                    checked={amenitiesFilter.includes("breakfast")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setAmenitiesFilter([
+                          ...amenitiesFilter,
+                          "breakfast",
+                        ]);
+                      } else {
+                        setAmenitiesFilter(
+                          amenitiesFilter.filter((x) => x !== "breakfast")
+                        );
+                      }
+                    }}
+                  >
                     Bao gồm bữa sáng
                   </Checkbox>
                 </div>
@@ -489,11 +553,7 @@ export default function Home() {
 
           {/* RIGHT: HOTEL LIST */}
           <Col xs={24} md={17} lg={18}>
-            <Space
-              style={{ marginBottom: 16 }}
-              size="large"
-              align="center"
-            >
+            <Space style={{ marginBottom: 16 }} size="large" align="center">
               <Title level={4} style={{ margin: 0 }}>
                 {filteredHotels.length} chỗ nghỉ tại {destination}
               </Title>
@@ -518,7 +578,7 @@ export default function Home() {
                   .filter(Boolean)
                   .join(", ");
 
-                const originalPrice = hotel.priceHotel || 0;
+                const originalPrice = Number(hotel.priceHotel || 0);
                 const finalPrice =
                   hotel.discount && hotel.discount > 0
                     ? (originalPrice * (100 - hotel.discount)) / 100
@@ -539,9 +599,13 @@ export default function Home() {
                     onClick={() => {
                       const params = new URLSearchParams();
 
-                      const [start, end] = dateRange; // nếu bạn đang dùng state dateRange
-                      const checkIn = start ? start.format("YYYY-MM-DD") : "";
-                      const checkOut = end ? end.format("YYYY-MM-DD") : "";
+                      const [start, end] = dateRange;
+                      const checkIn = start
+                        ? start.format("YYYY-MM-DD")
+                        : "";
+                      const checkOut = end
+                        ? end.format("YYYY-MM-DD")
+                        : "";
 
                       if (checkIn) params.set("check_in", checkIn);
                       if (checkOut) params.set("check_out", checkOut);
@@ -553,7 +617,6 @@ export default function Home() {
                         state: { hotel },
                       });
                     }}
-
                   >
                     <Row gutter={16}>
                       {/* ẢNH */}
@@ -585,10 +648,7 @@ export default function Home() {
                           size={4}
                           style={{ width: "100%" }}
                         >
-                          <Text
-                            type="secondary"
-                            style={{ fontSize: 12 }}
-                          >
+                          <Text type="secondary" style={{ fontSize: 12 }}>
                             Khách sạn
                           </Text>
                           <Title level={4} style={{ margin: 0 }}>
@@ -618,10 +678,8 @@ export default function Home() {
 
                             {(!hotel.tags ||
                               hotel.tags.length === 0) && (
-                                <Tag color="green">
-                                  Xác nhận ngay
-                                </Tag>
-                              )}
+                              <Tag color="green">Xác nhận ngay</Tag>
+                            )}
 
                             {hotel.discount > 0 && (
                               <Tag color="red">
@@ -632,11 +690,7 @@ export default function Home() {
 
                           {/* RATING REAL */}
                           <Space align="center">
-                            <Rate
-                              allowHalf
-                              disabled
-                              value={rating}
-                            />
+                            <Rate allowHalf disabled value={rating} />
                             <Text strong>
                               {rating.toFixed
                                 ? rating.toFixed(1)

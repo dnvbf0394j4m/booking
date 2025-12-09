@@ -35,7 +35,9 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import api from "../../../api/client"; 
+import api from "../../../api/client";
+import HotelEditModal from "./HotelEditModal";
+
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -68,6 +70,10 @@ export default function HotelList() {
   const [total, setTotal] = useState(0);
   const [sort, setSort] = useState({ field: "createdAt", order: "descend" });
 
+  const [editingHotel, setEditingHotel] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+
+
   // ---- ui-state ----
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -81,6 +87,18 @@ export default function HotelList() {
   const navigate = useNavigate();
 
   const debouncedQ = useDebounce(searchText, 500);
+
+  const openEditModal = (hotel) => {
+    setEditingHotel(hotel);
+    setEditOpen(true);
+  };
+
+  const handleUpdatedHotel = (updated) => {
+    setData((prev) =>
+      prev.map((h) => (h._id === updated._id ? { ...h, ...updated } : h))
+    );
+  };
+
 
   // ---- load cities for filter (optional dynamic) ----
   useEffect(() => {
@@ -120,7 +138,7 @@ export default function HotelList() {
   }, [debouncedQ, page, limit, sort, filterCity, includeDeleted]);
 
   // ---- load hotels from API ----
-    useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
@@ -225,7 +243,7 @@ export default function HotelList() {
               }}
             >
               {firstImg ? (
-                <img src={"http://localhost:4000"+firstImg.image_url} alt={record.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={"http://localhost:4000" + firstImg.image_url} alt={record.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <HomeOutlined style={{ fontSize: 20, color: "#bfbfbf" }} />
               )}
@@ -300,7 +318,8 @@ export default function HotelList() {
             <Button type="text" size="small" icon={<EyeOutlined />} style={{ color: "#1677ff" }} onClick={(e) => handleViewDetail(e, record)} />
           </Tooltip>
           <Tooltip title="Chỉnh sửa">
-            <Button type="text" size="small" icon={<EditOutlined />} style={{ color: "#52c41a" }} onClick={() => navigate(`/Admin/Hotel/edit/${record._id}`)} />
+            <Button type="text" size="small" icon={<EditOutlined />} style={{ color: "#52c41a" }} onClick={() => openEditModal(record)}
+            />
           </Tooltip>
           <Popconfirm
             title="Xác nhận xóa"
@@ -477,6 +496,13 @@ export default function HotelList() {
             </Popconfirm>
           </Flex>
         </Card>
+        <HotelEditModal
+          open={editOpen}
+          hotel={editingHotel}
+          onClose={() => setEditOpen(false)}
+          onUpdated={handleUpdatedHotel}
+        />
+
       </div>
     </>
   );

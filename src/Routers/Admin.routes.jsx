@@ -110,6 +110,7 @@ import HotelDetail from "../Pages/Admin/Hotel/DetailHotel";
 import HotelTimeline from "../Pages/Admin/vidu";
 import Employee from "../Pages/Admin/Employee";
 import CreateEmployee from "../Pages/Admin/Employee/CreateEmlpoyee";
+import CompanyBookingList from "../Pages/Admin/Booking/CompanyBookingList";
 
 export const AdminRoutes = [
   {
@@ -155,6 +156,10 @@ export const AdminRoutes = [
             path: "employee",
             element: <Employee />,
           },
+          {
+            path:"booking",
+            element:<CompanyBookingList/>,
+          }
         ],
       },
     ],
