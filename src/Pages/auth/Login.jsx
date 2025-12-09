@@ -146,7 +146,7 @@ const { Title, Text } = Typography;
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 const handleGoogle = () => {
-  window.location.href = "http://localhost:4000/api/auth/google";
+  window.location.href = API_BASE+"/api/auth/google";
 };
 
 export default function Login() {
