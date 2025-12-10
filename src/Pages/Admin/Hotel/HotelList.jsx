@@ -91,6 +91,7 @@ export default function HotelList() {
   const openEditModal = (hotel) => {
     setEditingHotel(hotel);
     setEditOpen(true);
+    
   };
 
   const handleUpdatedHotel = (updated) => {
@@ -243,7 +244,7 @@ export default function HotelList() {
               }}
             >
               {firstImg ? (
-                <img src={"http://localhost:4000" + firstImg.image_url} alt={record.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={API_BASE + firstImg.image_url} alt={record.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <HomeOutlined style={{ fontSize: 20, color: "#bfbfbf" }} />
               )}

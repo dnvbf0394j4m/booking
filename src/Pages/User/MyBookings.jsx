@@ -498,11 +498,11 @@ export default function MyBookings() {
       title: "Đánh giá",
       key: "review",
       render: (_, record) => {
-        const canReview =
-          record.status === "CHECKED_OUT" && !record.reviewed;
+        const isCheckedOut = record.status === "CHECKED_OUT";
+        const isReviewed = record.reviewed === true;
 
-
-        if (record.status === "CHECKED_OUT" && record.reviewed==false) {
+        // ⭐ Nếu đã đánh giá → KHÔNG cho đánh giá lại
+        if (isCheckedOut && isReviewed) {
           return (
             <Tag color="green" style={{ fontWeight: 600 }}>
               ✓ Đã đánh giá
@@ -510,21 +510,24 @@ export default function MyBookings() {
           );
         }
 
-        if (!canReview) {
-          return <Text type="secondary">-</Text>;
+        // ⭐ Nếu đã checkout nhưng chưa đánh giá → hiện nút đánh giá
+        if (isCheckedOut && !isReviewed) {
+          return (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => openReviewModal(record)}
+            >
+              Đánh giá
+            </Button>
+          );
         }
 
-        return (
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => openReviewModal(record)}
-          >
-            Đánh giá
-          </Button>
-        );
+        // ⭐ Các trạng thái khác → không hiển thị gì
+        return <Text type="secondary">-</Text>;
       },
-    },
+    }
+
 
   ];
 

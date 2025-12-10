@@ -19,7 +19,6 @@ export default function HeaderSimple() {
     } catch (err) {
       console.warn("Lỗi parse authUser từ localStorage:", err);
       user = null;
-      // Optional: dọn luôn localStorage nếu bị sai
       localStorage.removeItem("authUser");
     }
   }
@@ -77,7 +76,15 @@ export default function HeaderSimple() {
           </>
         ) : (
           <>
-            <Text strong>Xin chào, {user?.name || "Khách"}</Text>
+            {/* ⭐ Click vào tên → /my-bookings */}
+            <Text
+              strong
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/my-bookings")}
+            >
+              Xin chào, {user?.name || "Khách"}
+            </Text>
+
             <Button danger onClick={handleLogout}>
               Đăng xuất
             </Button>

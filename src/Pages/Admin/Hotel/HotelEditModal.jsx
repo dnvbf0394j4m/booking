@@ -1,35 +1,69 @@
 // src/pages/admin/hotel/HotelEditModal.jsx
-import React, { useEffect } from "react";
-import { Modal, Form, Input, InputNumber, Select, Row, Col, message } from "antd";
-import api from "../../../api/client"; // chỉnh path nếu khác
+import React, { useEffect, useState } from "react";
+import {
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Row,
+  Col,
+  message,
+  Image,
+  Upload,
+  Button,
+  Popconfirm,
+} from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import api from "../../../api/client";
 
 const { TextArea } = Input;
 
-const TYPE_OPTIONS = [
-  { label: "Khách sạn", value: "HOTEL" },
-  { label: "Căn hộ", value: "APARTMENT" },
-  { label: "Resort", value: "RESORT" },
-  { label: "Homestay", value: "HOMESTAY" },
-  { label: "Villa", value: "VILLA" },
-];
-
-const AMENITY_OPTIONS = [
-  { label: "WiFi miễn phí", value: "wifi" },
-  { label: "Bể bơi", value: "pool" },
-  { label: "Bao gồm bữa sáng", value: "breakfast" },
-];
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 export default function HotelEditModal({ open, onClose, hotel, onUpdated }) {
   const [form] = Form.useForm();
+  const [images, setImages] = useState([]);
 
-  // Khi hotel thay đổi → fill form
+
+
+  const [cities, setCities] = useState([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+
+  useEffect(() => {
+    loadCities();
+  }, []);
+
+  const loadCities = async () => {
+    try {
+      setLoadingCities(true);
+      const res = await api.get("/api/cities?limit=1000");
+
+      // backend của bạn trả res.data.data hoặc res.data ?
+      const items = res.data.data || res.data;
+
+      setCities(
+        items.map((c) => ({
+          label: c.name,
+          value: c._id,
+        }))
+      );
+    } catch (err) {
+      console.log("Load cities err:", err);
+    } finally {
+      setLoadingCities(false);
+    }
+  };
+
+
   useEffect(() => {
     if (hotel) {
       form.setFieldsValue({
         name: hotel.name,
         description: hotel.description,
         address: hotel.address,
-        priceHotel: Number(hotel.priceHotel || hotel.priceHotelNumber || 0),
+        priceHotel: convertPrice(hotel.priceHotel),
         discount: hotel.discount ?? 0,
         type: hotel.type || "HOTEL",
         amenities: hotel.amenities || [],
@@ -38,18 +72,74 @@ export default function HotelEditModal({ open, onClose, hotel, onUpdated }) {
         checkInTime: hotel.checkInTime || "",
         checkOutTime: hotel.checkOutTime || "",
         city: hotel.city?._id || hotel.city,
-        area: hotel.area?._id || hotel.area,
       });
-    } else {
-      form.resetFields();
+
+      setImages(hotel.hotelImages || []);
     }
-  }, [hotel, form]);
+  }, [hotel]);
+
+  const convertPrice = (price) => {
+    if (!price) return 0;
+    if (typeof price === "number") return price;
+    if (price.$numberDecimal) return Number(price.$numberDecimal);
+    return Number(price);
+  };
+
+  // ============================================================
+  // 🔥 UPLOAD ẢNH MỚI
+  // ============================================================
+  const handleUpload = async ({ file }) => {
+    if (!hotel?._id) return message.error("Thiếu hotelId");
+
+    const formData = new FormData();
+    formData.append("images", file); // khớp với array("images", 10)
+
+    try {
+      const res = await api.post(
+        `/api/hotels/${hotel._id}/images`,
+        formData // ❌ bỏ headers Content-Type, để axios tự set
+      );
+
+      message.success("Tải ảnh lên thành công");
+
+      // ✅ dùng hotel đã populate từ backend
+      const newHotel = res.data.hotel;
+      setImages(newHotel.hotelImages || []);
+
+      // báo ra ngoài trang list
+      onUpdated && onUpdated(newHotel);
+    } catch (err) {
+      console.log(err);
+      message.error("Upload ảnh thất bại");
+    }
+  };
+
+
+  // ============================================================
+  // 🔥 XOÁ ẢNH
+  // ============================================================
+  const handleDeleteImg = async (imgId) => {
+    try {
+      const res = await api.delete(
+        `/api/hotels/${hotel._id}/images/${imgId}`
+      );
+
+      message.success("Xoá ảnh thành công");
+
+      // cập nhật UI theo ảnh mới từ backend
+      setImages(res.data.hotel.hotelImages || []);
+
+      onUpdated && onUpdated(res.data.hotel);
+    } catch (err) {
+      message.error("Không xoá được ảnh");
+    }
+  };
+
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
 
-      // Chuẩn bị payload gửi lên đúng theo updateHotelSchema
       const payload = {
         name: values.name,
         description: values.description,
@@ -60,52 +150,38 @@ export default function HotelEditModal({ open, onClose, hotel, onUpdated }) {
         amenities: values.amenities || [],
         lat: values.lat,
         lng: values.lng,
-        checkInTime: values.checkInTime || null,
-        checkOutTime: values.checkOutTime || null,
-        city: values.city || null,
-        area: values.area || null,
+        checkInTime: values.checkInTime,
+        checkOutTime: values.checkOutTime,
+         city: values.city,
       };
 
       const res = await api.put(`/api/hotels/${hotel._id}`, payload);
-      message.success("Cập nhật khách sạn thành công");
 
-      if (onUpdated) {
-        onUpdated(res.data.hotel);
-      }
+      message.success("Cập nhật khách sạn thành công");
+      onUpdated && onUpdated(res.data.hotel);
       onClose();
     } catch (err) {
-      // lỗi validate form thì err là ValidationError → bỏ qua
       if (err?.errorFields) return;
-
-      console.error("Update hotel error:", err);
-      message.error(
-        err?.response?.data?.error || "Lỗi khi cập nhật khách sạn"
-      );
+      message.error("Lỗi cập nhật hotel");
     }
   };
 
   return (
     <Modal
       open={open}
-      title={hotel ? `Sửa khách sạn: ${hotel.name}` : "Sửa khách sạn"}
+      title={`Sửa khách sạn: ${hotel?.name || ""}`}
       onCancel={onClose}
       onOk={handleSubmit}
-      okText="Lưu"
-      cancelText="Hủy"
+      width={850}
       destroyOnClose
-      width={800}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{ discount: 0, type: "HOTEL", amenities: [] }}
-      >
+      <Form form={form} layout="vertical">
         <Row gutter={16}>
           <Col span={16}>
             <Form.Item
               label="Tên khách sạn"
               name="name"
-              rules={[{ required: true, message: "Nhập tên khách sạn" }]}
+              rules={[{ required: true, message: "Nhập tên" }]}
             >
               <Input />
             </Form.Item>
@@ -115,9 +191,15 @@ export default function HotelEditModal({ open, onClose, hotel, onUpdated }) {
             <Form.Item
               label="Loại chỗ ở"
               name="type"
-              rules={[{ required: true, message: "Chọn loại chỗ ở" }]}
+              rules={[{ required: true }]}
             >
-              <Select options={TYPE_OPTIONS} />
+              <Select
+                options={[
+                  { label: "Khách sạn", value: "HOTEL" },
+                  { label: "Căn hộ", value: "APARTMENT" },
+                  { label: "Resort", value: "RESORT" },
+                ]}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -126,38 +208,134 @@ export default function HotelEditModal({ open, onClose, hotel, onUpdated }) {
           <Input />
         </Form.Item>
 
-        <Form.Item label="Mô tả" name="description">
-          <TextArea rows={3} />
-        </Form.Item>
-
         <Row gutter={16}>
-          <Col span={8}>
+          <Col span={12}>
             <Form.Item
-              label="Giá mỗi đêm (VND)"
-              name="priceHotel"
-              rules={[{ required: true, message: "Nhập giá" }]}
+              label="Thành phố"
+              name="city"
+              rules={[{ required: true, message: "Chọn thành phố" }]}
             >
-              <InputNumber
-                style={{ width: "100%" }}
-                min={0}
-                step={50000}
-                formatter={(v) =>
-                  `${(v || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
-                }
-                parser={(v) => v.replace(/\./g, "")}
+              <Select
+                placeholder="Chọn thành phố"
+                loading={loadingCities}
+                options={cities}
+                showSearch
+                optionFilterProp="label"
               />
             </Form.Item>
           </Col>
 
+          <Col span={12}>
+            <Form.Item label="Tiện nghi" name="amenities">
+              <Select
+                mode="multiple"
+                options={[
+                  { label: "WiFi miễn phí", value: "wifi" },
+                  { label: "Bể bơi", value: "pool" },
+                  { label: "Bao gồm bữa sáng", value: "breakfast" },
+                ]}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+
+        <Form.Item label="Mô tả" name="description">
+          <TextArea rows={3} />
+        </Form.Item>
+
+        {/* ===================================================== */}
+        {/* 🔥 QUẢN LÝ ẢNH KHÁCH SẠN */}
+        {/* ===================================================== */}
+        <Form.Item label="Ảnh khách sạn">
+          <Row gutter={[12, 12]}>
+            {images
+              .filter(Boolean) // loại phần tử null/undefined nếu lỡ còn sót
+              .map((img) => {
+                const raw = img?.image_url || (typeof img === "string" ? img : "");
+                if (!raw) return null;
+
+                const src = raw.startsWith("http") ? raw : `${API_BASE}${raw}`;
+
+                return (
+                  <Col span={6} key={img._id || src}>
+                    <div style={{ position: "relative" }}>
+                      <Image
+                        src={src}
+                        style={{
+                          width: "100%",
+                          height: 110,
+                          objectFit: "cover",
+                          borderRadius: 6,
+                        }}
+                      />
+
+                      <Popconfirm
+                        title="Xoá ảnh?"
+                        okText="Xoá"
+                        cancelText="Huỷ"
+                        onConfirm={() => img._id && handleDeleteImg(img._id)}
+                      >
+                        <Button
+                          type="primary"
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          style={{
+                            position: "absolute",
+                            top: 5,
+                            right: 5,
+                            borderRadius: "50%",
+                          }}
+                        />
+                      </Popconfirm>
+                    </div>
+                  </Col>
+                );
+              })}
+
+            {/* Nút Upload */}
+            <Col span={6}>
+              <Upload
+                customRequest={handleUpload}
+                showUploadList={false}
+                accept="image/*"
+              >
+                <div
+                  style={{
+                    border: "1px dashed #aaa",
+                    height: 110,
+                    borderRadius: 6,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <PlusOutlined /> Thêm ảnh
+                </div>
+              </Upload>
+            </Col>
+          </Row>
+        </Form.Item>
+
+
+        {/* ===================================================== */}
+
+        <Row gutter={16}>
           <Col span={8}>
             <Form.Item
-              label="Giảm giá (%)"
-              name="discount"
-              rules={[
-                { type: "number", min: 0, max: 100, message: "0 - 100" },
-              ]}
+              label="Giá mỗi đêm"
+              name="priceHotel"
+              rules={[{ required: true }]}
             >
-              <InputNumber style={{ width: "100%" }} min={0} max={100} />
+              <InputNumber style={{ width: "100%" }} min={0} />
+            </Form.Item>
+          </Col>
+
+          <Col span={8}>
+            <Form.Item label="Giảm giá (%)" name="discount">
+              <InputNumber min={0} max={100} style={{ width: "100%" }} />
             </Form.Item>
           </Col>
 
@@ -165,41 +343,15 @@ export default function HotelEditModal({ open, onClose, hotel, onUpdated }) {
             <Form.Item label="Tiện nghi" name="amenities">
               <Select
                 mode="multiple"
-                allowClear
-                options={AMENITY_OPTIONS}
-                placeholder="Chọn tiện nghi"
+                options={[
+                  { label: "WiFi miễn phí", value: "wifi" },
+                  { label: "Bể bơi", value: "pool" },
+                  { label: "Bao gồm bữa sáng", value: "breakfast" },
+                ]}
               />
             </Form.Item>
           </Col>
         </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item label="Giờ nhận phòng (HH:mm)" name="checkInTime">
-              <Input placeholder="14:00" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="Giờ trả phòng (HH:mm)" name="checkOutTime">
-              <Input placeholder="12:00" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-
-        {/* Nếu bạn có dropdown city/area thì thay Input bằng Select, ở đây để tạm Input */}
-        {/* <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item label="Thành phố" name="city">
-              <Select ... />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="Khu vực" name="area">
-              <Select ... />
-            </Form.Item>
-          </Col>
-        </Row> */}
       </Form>
     </Modal>
   );
